@@ -1,2 +1,2 @@
-# dotemacs
-my .emacs config and setup files
+# Dot Emacs
+This is my .emacs configuration.
