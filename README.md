@@ -1,22 +1,53 @@
 # Emacs configuration file
-This is my configuration file for Emacs. The personal bits have NOT been included meaning you will have to fill in with your bits accordingly. I have left the code in place, with the information removed (e.g., email address).
+
+This is my emacs config file. I will be updating this as I find more things to add/tweak.
+
+
+<a id="org8d68ca0"></a>
+
+# Startup performance
+
+    (setq gc-cons-threshold (* 50 1000 1000))
+    
+    (defun my/display-startup-time ()
+      "Display startup time and garbage collection"
+      (message "Emacs loaded in %s with %d garbage collections"
+    	   (format "%.2f seconds"
+    		       (float-time
+    			(time-subtract after-init-time before-init-time)))
+    	   gcs-done))
+    
+    (add-hook 'emacs-startup-hook #'my/display-startup-time)
+
+
+<a id="orgb02743a"></a>
 
 # Modes
+
+
+<a id="org0364daa"></a>
 
 ## Ace jump mode
 
     (use-package ace-jump-mode
     :bind ("C-c j" . ace-jump-char-mode))
 
+
+<a id="org9178d5d"></a>
+
 ## Bind-key
 
     (use-package bind-key)
+
+
+<a id="org0795627"></a>
 
 ## Clojure/ClojureScript
 
 The languages I spend my software development time with the most are these two. This section includes setup for them.
 
     (use-package cider
+      :after org
       :config 
       (setq cider-auto-select-error-buffer t
     	cider-repl-pop-to-buffer-on-connect nil
@@ -31,14 +62,18 @@ The languages I spend my software development time with the most are these two. 
       (add-hook 'cider-repl-mode-hook 'paredit-mode))
 
     (use-package clojure-mode
+      :after org
       :config
       (add-hook 'clojure-mode-hook #'paredit-mode)
       (add-hook 'clojure-mode-hook #'eldoc-mode))
     
     (use-package ob-clojurescript
+      :after org
       :config
       (setq org-babel-clojure-backend 'cider))
 
+
+<a id="org4c7fb2a"></a>
 
 ## clj-refactor
 
@@ -50,6 +85,9 @@ This is such a nice library. I need to learn more about it.
       (add-hook 'clojure-mode-hook (lambda () (clj-refactor-mode 1)))
       (cljr-add-keybindings-with-prefix "C-c C-m")
       (setq cljr-warn-on-eval 1))
+
+
+<a id="orgc97ddd4"></a>
 
 ## Dired
 
@@ -64,6 +102,9 @@ The code below is used for folding dired sub-directories.
     	      ("<C-tab>" . dired-subtree-cycle)
     	      ("<S-iso-lefttab>" . dired-subtree-remove)))
 
+
+<a id="org96d99ec"></a>
+
 ## Eldoc
 
     (use-package eldoc
@@ -75,6 +116,8 @@ The code below is used for folding dired sub-directories.
         (add-hook 'eval-expression-minibuffer-setup-hook 'eldoc-mode)
       :diminish "")
 
+
+<a id="org6c53eb7"></a>
 
 ## EMMS
 
@@ -103,6 +146,8 @@ I have been trying out EMMS for playing music. It is going well, however the las
       ("s-m x" . emms-stop))
 
 
+<a id="orga82d8cf"></a>
+
 ### Starting the daemon from within emacs
 
 If you have an absolutely massive music library, it might be a good idea to get rid of mpc-update and only invoke it manually when needed.
@@ -118,6 +163,8 @@ If you have an absolutely massive music library, it might be a good idea to get 
     (global-set-key (kbd "s-m c") 'mpd/start-music-daemon)
 
 
+<a id="org5a25065"></a>
+
 ### Killing the daemon from within emacs
 
     (defun mpd/kill-music-daemon ()
@@ -129,6 +176,8 @@ If you have an absolutely massive music library, it might be a good idea to get 
     (global-set-key (kbd "s-m k") 'mpd/kill-music-daemon)
 
 
+<a id="orgc69bd20"></a>
+
 ### Updating the database easily.
 
     (defun mpd/update-database ()
@@ -139,76 +188,27 @@ If you have an absolutely massive music library, it might be a good idea to get 
     (global-set-key (kbd "s-m u") 'mpd/update-database)
 
 
+<a id="orgc409ee6"></a>
+
 ## ESS
 
 This is for R integration into Emacs. I use R for mainly data analysis and visualization.
 
     (use-package ess
-      :init
-      (progn
-        (setq ess-ask-for-ess-directory nil)
-        (add-to-list 'org-structure-template-alist
-    		 '("d" "ditaa"))
-        (add-to-list 'org-structure-template-alist   
-    		 '("E" "emacs-lisp"))
-        (add-to-list 'org-structure-template-alist
-    		 '("r" "R"))))
-
-
-## Gnus
-
-Email management (and much more!) through Emacs. Some personal information has been left out.
-
-    (use-package gnus
-      :commands gnus
-      :config
-      (setq gnus-select-method '(nnnil))
-      (setq gnus-secondary-select-methods
-    	'((nnimap "gmail"
-    		  (nnimap-address "imap.gmail.com")
-    		  (nnimap-server-port 993)
-    		  (nnimap-stream ssl))
-    	  (nnimap "hotmail"
-    		  (nnimap-address "imap-mail.outlook.com")
-    		  (nnimap-server-port 993)
-    		  (nnimap-stream ssl))
-    	  (nnimap "yahoo"
-    		  (nnimap-address "imap.mail.yahoo.com")
-    		  (nnimap-server-port 993)
-    		  (nnimap-stream ssl))))
+      :defer t
+      :init (setq ess-ask-for-ess-directory nil))
     
-      (setq gnus-summary-line-format "%U%I%[%-20,20f%]: %s\n")
-      (setq gnus-group-line-format "%M%y: [%G]--%c\n")
-      (setq gnus-site-init-file "~/.gnus.el")
-      (when window-system
-        (setq gnus-sum-thread-tree-indent "  ")
-        (setq gnus-sum-thread-tree-root "") 
-        (setq gnus-sum-thread-tree-false-root "") 
-        (setq gnus-sum-thread-tree-single-indent "")
-        (setq gnus-sum-thread-tree-vertical        "│")
-        (setq gnus-sum-thread-tree-leaf-with-other "├─► ")
-        (setq gnus-sum-thread-tree-single-leaf     "╰─► "))
-      (setq gnus-summary-line-format
-    	(concat
-    	 "%0{%U%R%z%}"
-    	 "%3{│%}" "%1{%d%}" "%3{│%}"   ;; date
-    	 "  "
-    	 "%4{%-20,20f%}"               ;; name
-    	 "  "
-    	 "%3{│%}"
-    	 " "
-    	 "%1{%B%}"
-    	 "%s\n"))
-      (setq gnus-summary-display-arrow t))
+      (setq use-package-verbose t)
 
+
+<a id="orgef1213c"></a>
 
 ## Helm
 
     (use-package helm
       :diminish helm-mode
+      :after org
       :config
-      (progn
-        (use-package helm-config)
         (setq helm-candidate-number-limit 100
     	  helm-idle-delay 0.0
     	  helm-input-idle-delay 0.01  
@@ -216,10 +216,7 @@ Email management (and much more!) through Emacs. Some personal information has b
     	  helm-quick-update t
     	  helm-M-x-requires-pattern nil
     	  helm-ff-skip-boring-files t)
-        (helm-mode)
     
-        (use-package helm-bibtex
-        :disabled true
         :bind (("C-c h" . helm-mini)
     	   ("C-h a" . helm-apropos)
     	   ("C-x C-b" . helm-buffers-list)
@@ -229,10 +226,22 @@ Email management (and much more!) through Emacs. Some personal information has b
     	   ("C-x C-f" . helm-find-files)))
 
 
+<a id="org96c0cb9"></a>
+
+## Helm config
+
+    (use-package helm-config
+      :after helm)
+
+
+<a id="org0d8cbe4"></a>
+
 # Custom functions
 
 
-## clear shell
+<a id="orge6429f9"></a>
+
+## Clear shell
 
     (defun my/clear-shell ()
        (interactive "p")
@@ -243,7 +252,9 @@ Email management (and much more!) through Emacs. Some personal information has b
        (bind-key "C-c x" 'my/clear-shell)
 
 
-## switch theme
+<a id="org782660c"></a>
+
+## Switch theme
 
     (defun my/switch-theme (theme)
       "Disables any currently active themes and loads theme."
@@ -260,6 +271,8 @@ Email management (and much more!) through Emacs. Some personal information has b
     (bind-key "s-<f12>" 'my/switch-theme)
 
 
+<a id="org116ec4c"></a>
+
 ## Disable active theme
 
 Sometimes switching from one theme to another will leave artefacts. This function resets to the default theme to avoid these artefacts.
@@ -271,12 +284,16 @@ Sometimes switching from one theme to another will leave artefacts. This functio
     (bind-key "s-<f11>" 'my/disable-active-themes)
 
 
-## (re)load config file
+<a id="orgda65246"></a>
+
+## Reload config file
 
     ; reload init file
     (global-set-key (kbd "C-c i")
     (lambda () (interactive) (org-babel-load-file (concat user-emacs-directory "config.org"))))
 
+
+<a id="orgcc038f8"></a>
 
 # Interface tweaks
 
@@ -326,6 +343,8 @@ This section customizes the user interface and related items.
           show-paren-style 'parenthesis)
 
 
+<a id="org6e76684"></a>
+
 # Ledger
 
 I periodically use this mode to keep track of my transactions. I have bash aliases that tend to be used more often, however.
@@ -338,6 +357,8 @@ I periodically use this mode to keep track of my transactions. I have bash alias
       :mode "\\.dat$")
 
 
+<a id="org20a2007"></a>
+
 # Magit
 
 I manage version control through Magit, as one does when one uses Emacs.
@@ -348,157 +369,160 @@ I manage version control through Magit, as one does when one uses Emacs.
       ("C-x g" . magit-status))
 
 
+<a id="org21e318b"></a>
+
 # Org-mode
 
 I spend heaps of time in org mode. This section lists the configuration I use.
 
-    (use-package org
-      :config
-      (setq org-ellipsis "▾")
-      (set-face-attribute 'org-ellipsis nil :underline nil )
+       (use-package org
+         :defer t
+         :config
+         (setq org-ellipsis "▾")
+         (set-face-attribute 'org-ellipsis nil :underline nil )
     
-      (setq org-directory "")
-      (setq org-agenda-files (mapcar #'(lambda (f) (interactive) (expand-file-name f org-directory)) (directory-files org-directory nil "^\\w.*org$"))
-    	org-odt-preferred-output-format "docx"
-    	org-src-fontify-natively t)
+         (setq org-directory "/home/tj/Dropbox/org/")
+         (setq org-agenda-files (mapcar #'(lambda (f) (interactive) (expand-file-name f org-directory)) (directory-files org-directory nil "^\\w.*org$"))
+    	   org-odt-preferred-output-format "docx"
+    	   org-src-fontify-natively t)
     
-      ;; log the date each when a deadline for a task changes
-      (setq org-log-redeadline 'time)
+         ;; log the date each when a deadline for a task changes
+         (setq org-log-redeadline 'time)
     
-      ;; log the date each when a schedule for a task changes
-      (setq org-log-reschedule 'time)
+         ;; log the date each when a schedule for a task changes
+         (setq org-log-reschedule 'time)
     
-      ;; ensure child tasks are marked 'done' before
-      ;; a parent can be marked 'done'
-      (setq org-enforce-todo-dependencies t)
+         ;; ensure child tasks are marked 'done' before
+         ;; a parent can be marked 'done'
+         (setq org-enforce-todo-dependencies t)
     
-      ;; ensure checkboxes are marked 'done' before 
-      ;; their parent can be marked 'done'
-      (setq org-enforce-todo-checkbox-dependencies t)
+         ;; ensure checkboxes are marked 'done' before 
+         ;; their parent can be marked 'done'
+         (setq org-enforce-todo-checkbox-dependencies t)
     
-      (defun org-summary-todo (n-done n-not-done)
-        "Switch entry to DONE when all subentries are done, to TODO otherwise."
-        (let (org-log-done org-log-states)   ; turn off logging
-          (org-todo (if (= n-not-done 0) "DONE" "TODO"))))
+         (defun org-summary-todo (n-done n-not-done)
+           "Switch entry to DONE when all subentries are done, to TODO otherwise."
+           (let (org-log-done org-log-states)   ; turn off logging
+    	 (org-todo (if (= n-not-done 0) "DONE" "TODO"))))
     
-      (add-hook 'org-after-todo-statistics-hook 'org-summary-todo)
-      (add-hook 'org-mode-hook 'turn-on-flyspell 'append)
+         (add-hook 'org-after-todo-statistics-hook 'org-summary-todo)
+         (add-hook 'org-mode-hook 'turn-on-flyspell 'append)
     
-      (setq org-agenda-custom-commands
-    	'(("h" "Daily habits"
-    	   ((agenda ""))
-    	   ((org-agenda-show-log t)
-    	    (org-agenda-ndays 7)
-    	    (org-agenda-log-mode-items '(state))
-    	    (org-agenda-skip-function '(org-agenda-skip-entry-if 'notregexp ":DAILY:"))))
-    	  ;; other commands here
-    	  ))
+         (setq org-agenda-custom-commands
+    	   '(("h" "Daily habits"
+    	      ((agenda ""))
+    	      ((org-agenda-show-log t)
+    	       (org-agenda-ndays 7)
+    	       (org-agenda-log-mode-items '(state))
+    	       (org-agenda-skip-function '(org-agenda-skip-entry-if 'notregexp ":DAILY:"))))
+    	     ;; other commands here
+    	     ))
     
-      ;; make things a bit cleaner by assigning org files to variables
-      (setq business-file "")
-      (setq ledger-file "")
-      (setq work-file "")
-      (setq research-file "")
+         ;; make things a bit cleaner by assigning org files to variables
+         (setq business-file "~/Dropbox/org/business.org")
+         (setq ledger-file "~/Dropbox/Life/Money/ledger.dat")
+         (setq work-file "~/Dropbox/org/work.org")
+         (setq research-file "~/Dropbox/org/research.org")
     
-      (setq org-capture-templates
-    	'(("h" "Home" entry (file "")
+         (setq org-capture-templates
+    	   '(("h" "Home" entry (file "~/Dropbox/org/home.org") "* TODO %?")
     
-    	  ("b" "Business")
-    	  ("be" "ESL Speed Reading" entry (file+olp business-file "Inventful" "ESL Speed Reading") "* TODO %?\n %a")
-    	  ("bf" "Footbag Dictionary" entry (file+olp business-file "Inventful" "Footbag Dictionary App") "* TODO %?")
-    	  ("bs" "Shred Log" entry (file+olp business-file "Inventful" "Shred Log") "* TODO %?")
-    	  ("bt" "Tasks" entry (file+headline business-file "Tasks") "* TODO %?")
+    	     ("b" "Business")
+    	     ("be" "ESL Speed Reading" entry (file+olp business-file "Inventful" "ESL Speed Reading") "* TODO %?\n %a")
+    	     ("bf" "Footbag Dictionary" entry (file+olp business-file "Inventful" "Footbag Dictionary App") "* TODO %?")
+    	     ("bs" "Shred Log" entry (file+olp business-file "Inventful" "Shred Log") "* TODO %?")
+    	     ("bt" "Tasks" entry (file+headline business-file "Tasks") "* TODO %?")
     
-    	  ("j"  "Journal" plain (file+olp+datetree "")
+    	     ("j"  "Journal" plain (file+olp+datetree "~/Dropbox/org/journal.org") "%U %?")
     
-    	  ("r" "Research"  entry (file+headline research-file "Research") "* TODO %?")
+    	     ("r" "Research"  entry (file+headline research-file "Research") "* TODO %?")
     
-    	  ("w" "work")
-    	  ("wt" "Task" entry (file+headline work-file "Tasks") "* TODO %?")
-    	  ("ww" "Workshop" entry (file+headline work-file "Workshops") "* TODO %?")))
+    	     ("w" "work")
+    	     ("wt" "Task" entry (file+headline work-file "Tasks") "* TODO %?")
+    	     ("ww" "Workshop" entry (file+headline work-file "Workshops") "* TODO %?")))
     
-      (defun my-read-date ()
-        "Parse date for capturing ledger entries via org mode"
-        (replace-regexp-in-string "-" "/" (org-read-date)))
+         (defun my-read-date ()
+           "Parse date for capturing ledger entries via org mode"
+           (replace-regexp-in-string "-" "/" (org-read-date)))
     
-      (setq org-file-apps '((auto-mode . emacs) ("\\.pdf\\'" . "okular %s"))
-    	org-clock-into-drawer t
-    	org-log-done t
-    	org-confirm-babel-evaluate nil
-    	org-cycle-separator-lines 0
-    	org-deadline-warning-days 14)
+         (setq org-file-apps '((auto-mode . emacs) ("\\.pdf\\'" . "okular %s"))
+    	   org-clock-into-drawer t
+    	   org-log-done t
+    	   org-confirm-babel-evaluate nil
+    	   org-cycle-separator-lines 0
+    	   org-deadline-warning-days 14)
     
-      (setq org-latex-pdf-process
-    	'("latexmk -pdflatex='pdflatex -interaction nonstopmode' -pdf -bibtex -f %f"))
+         (setq org-latex-pdf-process
+    	   '("latexmk -pdflatex='pdflatex -interaction nonstopmode' -pdf -bibtex -f %f"))
     
-      ;; put org-table captions below table, not above
-      (setq org-latex-table-caption-above nil) 
+         ;; put org-table captions below table, not above
+         (setq org-latex-table-caption-above nil) 
     
-      (org-babel-do-load-languages
-       'org-babel-load-languages
-       '((R . t)
-         (C . t)
-         (ditaa . t)
-         (emacs-lisp . t)
-         (latex . t)
-         (clojure . t)
-         (clojurescript . t)
-         (shell . t)))
+         (org-babel-do-load-languages
+          'org-babel-load-languages
+          '((R . t)
+    	(C . t)
+    	(ditaa . t)
+    	(emacs-lisp . t)
+    	(latex . t)
+    	(clojure . t)
+    	(clojurescript . t)
+    	(shell . t)))
     
-      ;; ditaa commands
-      (setq org-babel-ditaa-java-cmd "java")
-      (setq org-ditaa-jar-path "/usr/share/java/ditaa/ditaa-0.11.jar")
+         (require 'org-tempo) 
+         (add-to-list 'org-structure-template-alist '("di" . "src ditaa"))
+         (add-to-list 'org-structure-template-alist '("el" . "src emacs-lisp"))
+         (add-to-list 'org-structure-template-alist '("r" . "src R"))
+         (add-to-list 'org-structure-template-alist '("clj" . "src clojure"))
+         (add-to-list 'org-structure-template-alist '("cljs" . "src clojurescript"))
     
-      (setq auto-mode-alist ; file extentions to open in orgmode or other modes
-    	'(("\\.org"  . org-mode)  
-    	  ("\\.gpg$"  . org-mode)  
-    	  ("\\.md$"   . org-mode)
-    	  ("\\.txt$"  . org-mode)
-    	  ("\\.clj$"   . clojure-mode)
-    	  ("\\.cljc$"   . clojure-mode)
-    	  ("\\.cljs$"   . clojurescript-mode)
-    	  ("\\.edn\\'" . clojure-mode)
-    	  ("\\.tex$"  . LaTeX-mode)
-    	  ("\\.php$"  . web-mode)
-    	  ("\\.css$"  . web-mode)
-    	  ("\\.c$" . c-mode)
-    	  ("\\.cpp$" . c-mode)
-    	  ("\\.html$" . web-mode)))
     
-      :bind
-      (("C-c l"  . org-store-link)
-      ("C-c c"  . org-capture)
-      ("C-c a"  . org-agenda)))
+    ; change src block color
+    (set-face-attribute 'org-block nil :background
+    		    (color-darken-name
+    		     (face-attribute 'default :background) 3)
+    		     :extend t)
+    
+    
+    
+    
+         ;; ditaa commands
+         (setq org-babel-ditaa-java-cmd "java")
+         (setq org-ditaa-jar-path "/usr/share/java/ditaa/ditaa-0.11.jar")
+    
+         (setq auto-mode-alist ; file extentions to open in orgmode or other modes
+    	   '(("\\.org"  . org-mode)  
+    	     ("\\.gpg$"  . org-mode)  
+    	     ("\\.md$"   . org-mode)
+    	     ("\\.txt$"  . org-mode)
+    	     ("\\.clj$"   . clojure-mode)
+    	     ("\\.cljc$"   . clojure-mode)
+    	     ("\\.cljs$"   . clojurescript-mode)
+    	     ("\\.edn\\'" . clojure-mode)
+    	     ("\\.tex$"  . LaTeX-mode)
+    	     ("\\.php$"  . web-mode)
+    	     ("\\.css$"  . web-mode)
+    	     ("\\.c$" . c-mode)
+    	     ("\\.cpp$" . c-mode)
+    	     ("\\.html$" . web-mode)))
+    
+         :bind
+         (("C-c l"  . org-store-link)
+         ("C-c c"  . org-capture)
+         ("C-c a"  . org-agenda)))
 
 
-# Org bullets
-
-I suppose I wanted a bit more flavor when looking at my org mode headlines. This is one nice library for that.
-
-    (use-package org-bullets
-      ; :ensure t
-      :config
-      (add-hook 'org-mode-hook 'org-bullets-mode))
-
+<a id="org8e8b4b0"></a>
 
 # ox-latex
 
 This is for LaTeX support for org's exporter.
 
-    (use-package ox-latex)
+    (use-package ox-latex
+    :defer t)
 
 
-# Org-ref
-
-I find this to be extremely helpful for formatting and citing references. The path 
-
-    (use-package org-ref
-    :init 
-    
-    (setq	bibtex-completion-bibliography  "/path/to/biblio"
-          bibtex-completion-library-path  "/path/to/library"
-          bibtex-completion-notes-path    "/path/to/notes"))
-
+<a id="org9d032e8"></a>
 
 # Paredit
 
@@ -507,38 +531,7 @@ Maintaining parenthetical agreement, and more.
     (use-package paredit)
 
 
-# Php-mode
-
-From time to time I find myself looking at PHP code. This section helps with that.
-
-    (use-package php-mode
-      ; :ensure t
-      :defer t
-      :config
-      (defun bs-php-mode-hook ()
-        (setq indent-tabs-mode nil)
-        (setq c-basic-offset 2)
-        (setq php-template-compatibility nil)
-        (subword-mode 1))
-      (add-hook 'php-mode-hook 'bs-php-mode-hook)
-    
-      (use-package ac-php
-        :ensure t))
-
-
-# Smtp (sending mail)
-
-This section includes configuration to send email from Emacs (using Gnus)
-
-    (use-package smtpmail
-      :disabled t
-      :init
-      (setq smtpmail-default-smtp-server "smtp.gmail.com")
-      :config
-      (setq smtpmail-smtp-server "smtp.gmail.com"
-    	smtpmail-stream-type 'ssl
-    	smtpmail-smtp-service 465))
-
+<a id="org146f0bf"></a>
 
 # Shortcuts
 
@@ -548,7 +541,7 @@ I have created a couple of key chords for things like changing text scale, and f
     (bind-key "C--" 'text-scale-decrease)
     
     (global-set-key (kbd "C-c t") ; visit todo file
-    		(lambda () "Visit your home TODO file" (interactive) (find-file "")))
+    		(lambda () "Visit your home TODO file" (interactive) (find-file "~/Dropbox/org/home.org")))
     
     (global-set-key (kbd "C-c o") ; visit config file
     		(lambda () "Visit your config file" (interactive) (find-file "~/.emacs.d/config.org"))) 
@@ -557,25 +550,11 @@ I have created a couple of key chords for things like changing text scale, and f
     		(lambda () "Vist your ledger file" (interactive) (find-file ledger-file))) 
 
 
-# Web-mode
+<a id="org488c5b1"></a>
 
-    (use-package web-mode
-       :ensure t
-       ;:disabled t
-       :config
-       (defun bs-web-mode-hook ()
-         (local-set-key '[backtab] 'indent-relative)
-         (setq indent-tabs-mode nil)
-         (setq web-mode-markup-indent-offset 2
-    	   web-mode-css-indent-offset 2
-    	   web-mode-code-indent-offset 2))
-       (add-hook 'web-mode-hook 'bs-web-mode-hook)
-       (defun toggle-php-flavor-mode ()
-         (interactive "p")
-         "Toggle mode between PHP & Web-Mode Helper modes"
-         (cond ((string= mode-name "PHP")
-    	    (web-mode))
-    	   ((string= mode-name "Web")
-    	    (php-mode))))
-       (global-set-key [f5] 'toggle-php-flavor-mode))
+# Runtime Performance
+
+This is used to reset the garbage collection cycles to collection happens more frequently but in less time.
+
+    (setq gc-cons-threshold (* 2 1000 1000))
 
